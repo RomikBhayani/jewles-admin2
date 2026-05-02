@@ -1,0 +1,24 @@
+<%- include('../layout') %>
+
+<div class="card">
+    <div class="card-title">Welcome to Jewels Admin Dashboard</div>
+    <p>Manage your jewelry inventory with ease.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+        <div class="card-title">💰 Rate Management</div>
+        <p>Manage global metal and diamond rates</p>
+        <a href="/rates" class="btn btn-primary">Go to Rates</a>
+    </div>
+    <div class="card">
+        <div class="card-title">💍 Products</div>
+        <p>Create and manage jewelry products</p>
+        <a href="/products" class="btn btn-primary">Go to Products</a>
+    </div>
+    <div class="card">
+        <div class="card-title">⚙️ Settings</div>
+        <p>Configure theme and system settings</p>
+        <a href="/settings" class="btn btn-primary">Go to Settings</a>
+    </div>
+</div>

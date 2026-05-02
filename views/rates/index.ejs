@@ -1,0 +1,262 @@
+<%- include('../layout') %>
+
+<div style="margin-bottom: 2rem;">
+    <h2 style="margin-bottom: 1rem;">💰 Metal Rates</h2>
+    <button class="btn btn-primary" onclick="showAddMetalForm()">+ Add Metal Rate</button>
+</div>
+
+<!-- Add/Edit Form -->
+<div id="metalForm" class="card" style="display: none;">
+    <div class="card-title">Add/Edit Metal Rate</div>
+    <form onsubmit="submitMetalForm(event)">
+        <div class="form-group">
+            <label class="form-label">Metal Name</label>
+            <input type="text" id="metalName" class="form-input" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Metal Code (e.g., AU, AG)</label>
+            <input type="text" id="metalCode" class="form-input" placeholder="AU" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Rate per Gram (USD)</label>
+            <input type="number" id="metalRate" class="form-input" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Color (Hex)</label>
+            <input type="color" id="metalColor" class="form-input">
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary">Save Metal Rate</button>
+            <button type="button" class="btn" onclick="hideMetalForm()" style="background-color: var(--color-border);">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Metal Rates Table -->
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Metal Name</th>
+                <th>Code</th>
+                <th>Rate per Gram</th>
+                <th>Color</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="metalTableBody">
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem;">Loading metal rates...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Diamond Rates Section -->
+<div style="margin-top: 3rem; margin-bottom: 2rem;">
+    <h2 style="margin-bottom: 1rem;">💎 Diamond Rates</h2>
+    <button class="btn btn-primary" onclick="showAddDiamondForm()">+ Add Diamond Rate</button>
+</div>
+
+<!-- Add/Edit Diamond Form -->
+<div id="diamondForm" class="card" style="display: none;">
+    <div class="card-title">Add/Edit Diamond Rate</div>
+    <form onsubmit="submitDiamondForm(event)">
+        <div class="form-group">
+            <label class="form-label">Diamond Type</label>
+            <input type="text" id="diamondName" class="form-input" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Diamond Code</label>
+            <input type="text" id="diamondCode" class="form-input" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Rate per Piece (USD)</label>
+            <input type="number" id="diamondRate" class="form-input" step="0.01" required>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary">Save Diamond Rate</button>
+            <button type="button" class="btn" onclick="hideDiamondForm()" style="background-color: var(--color-border);">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Diamond Rates Table -->
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Diamond Type</th>
+                <th>Code</th>
+                <th>Rate per Piece</th>
+                <th>Category</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="diamondTableBody">
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem;">Loading diamond rates...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Load metal rates
+    async function loadMetalRates() {
+        try {
+            const response = await fetch('/api/rates/metals');
+            const data = await response.json();
+            
+            const tbody = document.getElementById('metalTableBody');
+            tbody.innerHTML = '';
+            
+            if (data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No metal rates found</td></tr>';
+                return;
+            }
+            
+            data.data.forEach(metal => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${metal.name}</td>
+                        <td>${metal.code}</td>
+                        <td>$${parseFloat(metal.ratePerGram).toFixed(2)}</td>
+                        <td><span style="display: inline-block; width: 30px; height: 30px; background-color: ${metal.color}; border-radius: 0.25rem; border: 1px solid var(--color-border);"></span></td>
+                        <td>
+                            <button class="btn btn-primary" onclick="editMetal('${metal._id}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteMetal('${metal._id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch (error) {
+            console.error('Error loading metal rates:', error);
+        }
+    }
+
+    // Load diamond rates
+    async function loadDiamondRates() {
+        try {
+            const response = await fetch('/api/rates/diamonds');
+            const data = await response.json();
+            
+            const tbody = document.getElementById('diamondTableBody');
+            tbody.innerHTML = '';
+            
+            if (data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No diamond rates found</td></tr>';
+                return;
+            }
+            
+            data.data.forEach(diamond => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${diamond.name}</td>
+                        <td>${diamond.code}</td>
+                        <td>$${parseFloat(diamond.ratePerPiece).toFixed(2)}</td>
+                        <td>${diamond.category}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="editDiamond('${diamond._id}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteDiamond('${diamond._id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch (error) {
+            console.error('Error loading diamond rates:', error);
+        }
+    }
+
+    // Form handlers
+    function showAddMetalForm() {
+        document.getElementById('metalForm').style.display = 'block';
+    }
+
+    function hideMetalForm() {
+        document.getElementById('metalForm').style.display = 'none';
+    }
+
+    async function submitMetalForm(event) {
+        event.preventDefault();
+        const name = document.getElementById('metalName').value;
+        const code = document.getElementById('metalCode').value;
+        const ratePerGram = document.getElementById('metalRate').value;
+        const color = document.getElementById('metalColor').value;
+
+        try {
+            const response = await fetch('/api/rates/metals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, code, ratePerGram, color })
+            });
+
+            if (response.ok) {
+                hideMetalForm();
+                loadMetalRates();
+                alert('Metal rate added successfully!');
+            }
+        } catch (error) {
+            alert('Error adding metal rate: ' + error.message);
+        }
+    }
+
+    function showAddDiamondForm() {
+        document.getElementById('diamondForm').style.display = 'block';
+    }
+
+    function hideDiamondForm() {
+        document.getElementById('diamondForm').style.display = 'none';
+    }
+
+    async function submitDiamondForm(event) {
+        event.preventDefault();
+        const name = document.getElementById('diamondName').value;
+        const code = document.getElementById('diamondCode').value;
+        const ratePerPiece = document.getElementById('diamondRate').value;
+
+        try {
+            const response = await fetch('/api/rates/diamonds', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, code, ratePerPiece })
+            });
+
+            if (response.ok) {
+                hideDiamondForm();
+                loadDiamondRates();
+                alert('Diamond rate added successfully!');
+            }
+        } catch (error) {
+            alert('Error adding diamond rate: ' + error.message);
+        }
+    }
+
+    async function deleteMetal(id) {
+        if (confirm('Are you sure you want to delete this metal rate?')) {
+            try {
+                await fetch(`/api/rates/metals/${id}`, { method: 'DELETE' });
+                loadMetalRates();
+            } catch (error) {
+                alert('Error deleting metal rate: ' + error.message);
+            }
+        }
+    }
+
+    async function deleteDiamond(id) {
+        if (confirm('Are you sure you want to delete this diamond rate?')) {
+            try {
+                await fetch(`/api/rates/diamonds/${id}`, { method: 'DELETE' });
+                loadDiamondRates();
+            } catch (error) {
+                alert('Error deleting diamond rate: ' + error.message);
+            }
+        }
+    }
+
+    // Load on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMetalRates();
+        loadDiamondRates();
+    });
+</script>
